@@ -53,6 +53,8 @@ class SearchProblem:
         state, 'action' is the action required to get there, and 'stepCost' is
         the incremental cost of expanding to that successor.
         """
+        # this action is kinda like expanding the fringe.
+
         util.raiseNotDefined()
 
     def getCostOfActions(self, actions):
@@ -90,8 +92,9 @@ def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    fringe = util.Stack()
-    fringe.push((problem.getStartState(), []))
+    fringe = util.Stack() # LIFO policy list
+    # fringe starts with start state and the empty action list. 
+    fringe.push((problem.getStartState(), [])) 
     visited = set()
 
     while not fringe.isEmpty():
@@ -111,9 +114,9 @@ def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
 
 def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
     """Search the shallowest nodes in the search tree first."""
-    fringe = util.queue()
+    fringe = util.Queue() # FIFO policy list. 
     fringe.push((problem.getStartState(), []))
-    visited = set()
+    visited = set() # since we wanna remove duplicates. 
 
     while not fringe.isEmpty():
         state, actions = fringe.pop()

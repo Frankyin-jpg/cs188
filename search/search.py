@@ -95,10 +95,10 @@ def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
     fringe = util.Stack() # LIFO policy list
     # fringe starts with start state and the empty action list. 
     fringe.push((problem.getStartState(), [])) 
-    visited = set()
+    visited = set() # since we wanna remove duplicates. 
 
     while not fringe.isEmpty():
-        state, actions = fringe.pop()
+        state, actions = fringe.pop() # expand the node 
 
         if state in visited:
             continue
@@ -108,7 +108,7 @@ def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
         visited.add(state)
         for successor, action, _ in problem.getSuccessors(state):
             if successor not in visited:
-                fringe.push((successor, actions + [action]))
+                fringe.push((successor, actions + [action])) # decide the next state to visit
 
     return []
 
@@ -116,7 +116,7 @@ def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
     """Search the shallowest nodes in the search tree first."""
     fringe = util.Queue() # FIFO policy list. 
     fringe.push((problem.getStartState(), []))
-    visited = set() # since we wanna remove duplicates. 
+    visited = set() 
 
     while not fringe.isEmpty():
         state, actions = fringe.pop()
@@ -135,8 +135,25 @@ def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
 
 def uniformCostSearch(problem: SearchProblem) -> List[Directions]:
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.PriorityQueue() # The priority will be determined by cost. 
+    fringe.push((problem.getStartState(), []),problem.getCostOfActions([]))
+    visited = set() # since we wanna remove duplicates. 
+
+    while not fringe.isEmpty():
+        state, actions = fringe.pop()
+
+        if state in visited:
+            continue
+        if problem.isGoalState(state):
+            return actions
+
+        visited.add(state)
+        for successor, action, _ in problem.getSuccessors(state):
+            if successor not in visited:
+                fringe.push((successor, actions + [action]), problem.getCostOfActions(actions + [action]))
+
+    return []
+    
 
 def nullHeuristic(state, problem=None) -> float:
     """

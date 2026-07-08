@@ -95,63 +95,59 @@ def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
     fringe = util.Stack() # LIFO policy list
     # fringe starts with start state and the empty action list. 
     fringe.push((problem.getStartState(), [])) 
-    visited = set() # since we wanna remove duplicates. 
+    visited = set() # since we wanna remove duplicates for the graph search. 
 
     while not fringe.isEmpty():
         state, actions = fringe.pop() # expand the node 
 
-        if state in visited:
-            continue
         if problem.isGoalState(state):
             return actions
-
-        visited.add(state)
-        for successor, action, _ in problem.getSuccessors(state):
-            if successor not in visited:
-                fringe.push((successor, actions + [action])) # decide the next state to visit
+        if not (state in visited):
+             visited.add(state) # the set will automatically take care of duplicates. 
+             for successor, action, _ in problem.getSuccessors(state):
+                # decide the next state to visit. 
+                # the most recent push wil be the next one to pop. 
+                fringe.push((successor, actions + [action])) 
 
     return []
 
 def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
     """Search the shallowest nodes in the search tree first."""
-    fringe = util.Queue() # FIFO policy list. 
-    fringe.push((problem.getStartState(), []))
-    visited = set() 
+    fringe = util.Queue() # FIFO policy list
+    fringe.push((problem.getStartState(), [])) # start state and the empty action list. 
+    visited = set() # since we wanna remove duplicates for the graph search. 
 
     while not fringe.isEmpty():
-        state, actions = fringe.pop()
+        state, actions = fringe.pop() # expand the node 
 
-        if state in visited:
-            continue
         if problem.isGoalState(state):
             return actions
-
-        visited.add(state)
-        for successor, action, _ in problem.getSuccessors(state):
-            if successor not in visited:
-                fringe.push((successor, actions + [action]))
+        if not (state in visited):
+             visited.add(state) # the set will automatically take care of duplicates. 
+             for successor, action, _ in problem.getSuccessors(state):
+                # decide the next state to visit. 
+                # the most recent push wil be the next one to pop. 
+                fringe.push((successor, actions + [action])) 
 
     return []
 
 def uniformCostSearch(problem: SearchProblem) -> List[Directions]:
     """Search the node of least total cost first."""
     fringe = util.PriorityQueue() # The priority will be determined by cost. 
-    fringe.push((problem.getStartState(), []),problem.getCostOfActions([]))
-    visited = set() # since we wanna remove duplicates. 
+    fringe.push((problem.getStartState(), []), problem.getCostOfActions([]))
+    visited = set()
 
     while not fringe.isEmpty():
         state, actions = fringe.pop()
 
-        if state in visited:
-            continue
         if problem.isGoalState(state):
             return actions
-
-        visited.add(state)
-        for successor, action, _ in problem.getSuccessors(state):
-            if successor not in visited:
-                fringe.push((successor, actions + [action]), problem.getCostOfActions(actions + [action]))
-
+        if not (state in visited):
+             visited.add(state) # the set will automatically take care of duplicates. 
+             for successor, action, _ in problem.getSuccessors(state):
+                # decide the next state to visit. 
+                # the most recent push wil be the next one to pop. 
+                fringe.push((successor, actions + [action]),problem.getCostOfActions(actions + [action])) 
     return []
     
 
@@ -164,8 +160,28 @@ def nullHeuristic(state, problem=None) -> float:
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic) -> List[Directions]:
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.PriorityQueue()
+    start_state = problem.getStartState()
+    
+    fringe.push(start_state, heuristic(start_state, problem))
+    best_cost = {start_state: 0}
+    best_actions = {start_state: []}
+
+    while not fringe.isEmpty():
+        state = fringe.pop()
+
+        if problem.isGoalState(state):
+            return best_actions[state]
+        
+        for successor, action, step_cost in problem.getSuccessors(state):
+            new_cost = best_cost[state] + step_cost
+            if successor not in best_cost or new_cost < best_cost[successor]:
+                best_cost[successor] = new_cost
+                best_actions[successor] = best_actions[state] + [action]
+                priority = new_cost + heuristic(successor, problem)
+                fringe.update(successor, priority)
+
+    return []
 
 # Abbreviations
 bfs = breadthFirstSearch

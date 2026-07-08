@@ -478,8 +478,51 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    
+    # Get all remaining food positions
+    food_list = foodGrid.asList()
+    
+    # If no food remains, we're at the goal
+    if not food_list:
+        return 0
+    
+    # If only one food remains, return distance to it
+    if len(food_list) == 1:
+        return abs(position[0] - food_list[0][0]) + abs(position[1] - food_list[0][1])
+    
+    # Build a lower bound from: nearest food + MST over remaining food.
+    # We compute the MST cost inline without creating a second helper function.
+    food_tuple = tuple(sorted(food_list))
+    if 'mst_cache' not in problem.heuristicInfo:
+        problem.heuristicInfo['mst_cache'] = {}
+    
+    if food_tuple not in problem.heuristicInfo['mst_cache']:
+        points = food_list
+        n = len(points)
+        visited = {0}
+        mst_cost = 0
+        
+        while len(visited) < n:
+            min_dist = float('inf')
+            next_idx = None
+            for i in visited:
+                xi, yi = points[i]
+                for j in range(n):
+                    if j not in visited:
+                        xj, yj = points[j]
+                        dist = abs(xi - xj) + abs(yi - yj)
+                        if dist < min_dist:
+                            min_dist = dist
+                            next_idx = j
+            visited.add(next_idx)
+            mst_cost += min_dist
+        
+        problem.heuristicInfo['mst_cache'][food_tuple] = mst_cost
+    else:
+        mst_cost = problem.heuristicInfo['mst_cache'][food_tuple]
+    
+    nearest_dist = min(abs(position[0] - f[0]) + abs(position[1] - f[1]) for f in food_list)
+    return nearest_dist + mst_cost
 
 
 class ClosestDotSearchAgent(SearchAgent):

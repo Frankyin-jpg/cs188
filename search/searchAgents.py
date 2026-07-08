@@ -374,14 +374,21 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     if not unvisited:
         return 0
     
-    # Return the maximum Manhattan distance to any unvisited corner
-    # This is admissible because we must visit all of them
-    max_distance = 0
-    for corner in unvisited:
-        distance = abs(position[0] - corner[0]) + abs(position[1] - corner[1])
-        max_distance = max(max_distance, distance)
+    # Nearest neighbor heuristic: greedily visit nearest corner at each step
+    # This provides a tighter lower bound than just max Manhattan distance
+    total_distance = 0
+    current_pos = position
+    remaining = list(unvisited)
     
-    return max_distance
+    while remaining:
+        # Find nearest unvisited corner from current position
+        nearest_corner = min(remaining, key=lambda c: abs(current_pos[0] - c[0]) + abs(current_pos[1] - c[1]))
+        nearest_distance = abs(current_pos[0] - nearest_corner[0]) + abs(current_pos[1] - nearest_corner[1])
+        total_distance += nearest_distance
+        remaining.remove(nearest_corner)
+        current_pos = nearest_corner
+    
+    return total_distance
 
 
 

@@ -346,10 +346,50 @@ def betterEvaluationFunction(currentGameState: GameState):
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: Combine the game score with progress toward nearby food and
+    capsules.  Penalize nearby active ghosts, while rewarding scared ghosts
+    that Pacman can reach before their scared timer expires.
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    if currentGameState.isWin() or currentGameState.isLose():
+        return currentGameState.getScore()
+
+    pacmanPosition = currentGameState.getPacmanPosition()
+    foodPositions = currentGameState.getFood().asList()
+    capsules = currentGameState.getCapsules()
+    ghostStates = currentGameState.getGhostStates()
+
+    score = currentGameState.getScore()
+
+    # Favor eating all food, while also giving Pacman a local target to pursue.
+    if foodPositions:
+        closestFood = min(
+            manhattanDistance(pacmanPosition, food) for food in foodPositions
+        )
+        score -= 4.0 * len(foodPositions)
+        score += 10.0 / (closestFood + 1)
+
+    # Capsules are especially useful when an active ghost is nearby.
+    if capsules:
+        closestCapsule = min(
+            manhattanDistance(pacmanPosition, capsule) for capsule in capsules
+        )
+        score -= 20.0 * len(capsules)
+        score += 8.0 / (closestCapsule + 1)
+
+    for ghostState in ghostStates:
+        ghostDistance = manhattanDistance(
+            pacmanPosition, ghostState.getPosition()
+        )
+
+        if ghostState.scaredTimer > ghostDistance:
+            score += 200.0 / (ghostDistance + 1)
+        elif ghostState.scaredTimer == 0:
+            if ghostDistance <= 1:
+                score -= 200.0
+            else:
+                score -= 10.0 / ghostDistance
+
+    return score
 
 # Abbreviation
 better = betterEvaluationFunction

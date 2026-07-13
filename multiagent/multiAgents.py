@@ -74,8 +74,36 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # Start with the built-in score so that eating food, eating ghosts, and
+        # winning are all immediately reflected in the value of an action.
+        score = successorGameState.getScore()
+
+        # Prefer states with less food, and use the reciprocal of the distance
+        # to the closest dot to keep Pacman making progress between dots.
+        foodPositions = newFood.asList()
+        if foodPositions:
+            closestFood = min(manhattanDistance(newPos, food) for food in foodPositions)
+            score += 10.0 / (closestFood + 1)
+            score -= 4.0 * len(foodPositions)
+
+        # Active ghosts are dangerous at close range.  Scared ghosts reverse
+        # that preference, but only when Pacman can reach them before the timer
+        # expires.
+        for ghostState, scaredTime in zip(newGhostStates, newScaredTimes):
+            ghostDistance = manhattanDistance(newPos, ghostState.getPosition())
+
+            if scaredTime > ghostDistance:
+                score += 200.0 / (ghostDistance + 1)
+            elif ghostDistance <= 1:
+                return float('-inf')
+            else:
+                score -= 8.0 / ghostDistance
+
+        # Stopping wastes a turn and often lets a nearby ghost close in.
+        if action == Directions.STOP:
+            score -= 10.0
+
+        return score
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
